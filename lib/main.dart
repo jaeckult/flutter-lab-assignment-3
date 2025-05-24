@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:album/presentation/screens/albumListPage.dart';
 import 'package:album/application/bloc/album_bloc.dart';
+import 'package:album/application/bloc/photos_bloc.dart';
+import 'package:album/navigation/router.dart';
 import 'package:album/data/repository/albums_repositoryImpl.dart';
 import 'package:album/data/datasource/album_remote_datasourceImpl.dart';
 import 'package:http/http.dart' as http;
@@ -15,19 +16,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Albums App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: BlocProvider(
-        create: (context) => AlbumsBloc(
-          albumsRepository: AlbumsRepositoryimpl(
-            albumRemoteDataSource: BookingsRemoteDataSourceImpl(http.Client()),
-          ),
+    final albumsRepository = AlbumsRepositoryimpl(
+      albumRemoteDataSource: AlbumRemoteDatasourceimpl(http.Client()),
+    );
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => AlbumsBloc(albumsRepository: albumsRepository),
         ),
-        child: const Albumlistpage(),
+        BlocProvider(
+          create: (context) => PhotosBloc(albumsRepository: albumsRepository),
+        ),
+      ],
+      child: MaterialApp.router(
+        title: 'Album App',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
